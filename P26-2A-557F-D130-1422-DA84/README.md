@@ -1,48 +1,74 @@
-# Projeto #1: Projeto Oficial Sorteado (Consulte https://frankalcantara.com/projetos2026)
+# Projeto #15: Lista de Tarefas Colaborativa (Shared To-Do)
 
 - **Modalidade:** Projeto Oficial Sorteado (Valendo 100 pontos)
-- **Estudante:** Estudante (Modo Offline)
+- **Estudante:** Leonardo Ceratti dos Santos · RA 2026107850
 - **Turma:** 2A
 - **Chave Única:** `P26-2A-557F-D130-1422-DA84`
-- **URL_CLOUDFLARE:** `https://p26-2a-557f-d130-1422-da84.pages.dev` *(Atualize com a URL pública real do seu deploy na Cloudflare antes de abrir o Pull Request)*
+- **URL_CLOUDFLARE:** `https://p26-2a-557f-d130-1422-da84.pages.dev`
 
 ---
 
 ## Especificação do Projeto
 
-Substitua pela descrição oficial recebida no seu e-mail de confirmação.
+Gerenciador de tarefas voltado para pequenas equipes de trabalho acadêmico. Após o
+login via Discord, o usuário pode criar listas de tarefas e compartilhar o código de
+acesso da lista com colegas de turma, permitindo que múltiplos usuários autenticados
+visualizem e interajam com os mesmos itens.
 
----
+No Cloudflare D1, o esquema relacional contempla tabelas para usuários, listas,
+membros da lista e tarefas. Com JavaScript vanilla, os integrantes podem criar
+subtarefas, atribuir um responsável (exibindo o avatar do Discord do colega no item)
+e alterar o status de conclusão, sincronizando o estado com o servidor a cada interação.
 
-## Como Publicar esta Subpasta no Cloudflare Pages + D1 + Discord OAuth2
+## Como funciona
 
-1. No painel da Cloudflare (**Workers & Pages** → **Create** → **Pages** → **Connect to Git**), selecione o seu fork do repositório `Avalia2026-2`.
-2. Configure os parâmetros de build apontando para esta subpasta:
-   - **Root directory (Diretório raiz):** `P26-2A-557F-D130-1422-DA84`
-   - **Build command:** *(deixe em branco — HTML/CSS/JS puro)*
+| Camada | Arquivos |
+|---|---|
+| Interface (HTML5, CSS3, JS puro) | `public/index.html`, `public/styles.css`, `public/app.js` |
+| Login Discord OAuth2 (user_id, nome, avatar) | `functions/api/auth/discord.js`, `functions/api/auth/discord/callback.js`, `functions/api/auth/logout.js`, `functions/api/me.js` |
+| Listas e tarefas | `functions/api/lists/`, `functions/api/tasks/` |
+| Sessão assinada e validações | `lib/util.js` |
+| Banco (Cloudflare D1) | `migrations/0001_init.sql`, `migrations/0002_shared_todo.sql` |
+| Agentes, harness e skills | `AGENTS.md`, `skills/` |
+
+Tabelas: `discord_users` (usuários), `lists` (listas, com `code` de acesso),
+`list_members` (membros) e `tasks` (tarefas e subtarefas, com `assignee_id` e `done`).
+
+### Regras validadas no servidor
+
+- Sem sessão válida (cookie assinado com HMAC), toda rota da API responde 401.
+- Quem não é membro da lista recebe 404 (a lista não é revelada).
+- O responsável de uma tarefa precisa ser membro da mesma lista.
+- Subtarefas só existem sob tarefas da mesma lista (um nível).
+- Mutações só são aceitas com a origem do próprio site (defesa contra CSRF).
+- O fluxo OAuth confere o `state` guardado em cookie.
+
+## Como publicar esta subpasta no Cloudflare Pages + D1 + Discord OAuth2
+
+1. **Pages:** em *Workers & Pages → Create → Pages → Connect to Git*, escolha o fork e
+   dê ao projeto o nome `p26-2a-557f-d130-1422-da84`. Configure:
+   - **Root directory:** `P26-2A-557F-D130-1422-DA84`
+   - **Build command:** vazio
    - **Build output directory:** `public`
-3. Crie o banco de dados D1 e aplique a migração inicial (no terminal do laboratório usando Scoop):
-   ```powershell
-   cd P26-2A-557F-D130-1422-DA84
-   npx.cmd wrangler d1 create db-p26-2a-557f-d130-1422-da84
-   # Copie o database_id gerado para o arquivo wrangler.jsonc e execute:
-   npx.cmd wrangler d1 migrations apply DB --remote
-   ```
-4. **Vincule o Banco D1 ao seu Cloudflare Pages (Obrigatório para ativar env.DB):**
-   - No painel da Cloudflare: acesse seu projeto Pages → **Settings** → **Functions** → **D1 database bindings**.
-   - Clique em **Add binding**:
-     - **Variable name:** `DB`
-     - **D1 database:** selecione o banco que você criou (`db-p26-2a-557f-d130-1422-da84`).
-5. **Configuração do Discord OAuth2 (Obrigatório para autenticação real):**
-   - Acesse o **Discord Developer Portal** (https://discord.com/developers/applications) e crie uma nova Application.
-   - Na aba **OAuth2**:
-     - Copie o **Client ID** e gere o **Client Secret**.
-     - Em **Redirects**, adicione a URL exata do deploy:
-       `https://p26-2a-557f-d130-1422-da84.pages.dev/api/auth/discord/callback`
-   - No painel do seu projeto no Cloudflare Pages:
-     - Acesse **Settings** → **Environment variables**.
-     - Adicione as variáveis de ambiente:
-       - `DISCORD_CLIENT_ID`
-       - `DISCORD_CLIENT_SECRET`
-6. Atualize o campo **URL_CLOUDFLARE** no topo deste `README.md` com o endereço público gerado pela Cloudflare.
-7. Na raiz do repositório, execute `node validar-local.mjs P26-2A-557F-D130-1422-DA84` para validar todos os critérios antes de fazer o commit e abrir o Pull Request.
+2. **Banco D1:** crie `db-p26-2a-557f-d130-1422-da84`, coloque o `database_id` no
+   `wrangler.jsonc` e execute no *Console* do banco, nesta ordem, o conteúdo de
+   `migrations/0001_init.sql` e depois o de `migrations/0002_shared_todo.sql`.
+3. **Binding:** variável `DB` apontando para esse banco (já declarado no `wrangler.jsonc`;
+   se o painel não mostrar o binding, ele vem do arquivo).
+4. **Discord:** em *Developer Portal → OAuth2 → Redirects* cadastre
+   `https://p26-2a-557f-d130-1422-da84.pages.dev/api/auth/discord/callback`.
+5. **Variáveis (como Secret):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` e
+   `SESSION_SECRET` (texto longo e aleatório, 40+ caracteres). Faça um novo deploy
+   depois de criá-las.
+6. Confira `https://p26-2a-557f-d130-1422-da84.pages.dev/api/status`: deve mostrar
+   `d1Conectado`, `discordConfigurado` e `sessaoConfigurada` como `true`.
+7. Na raiz do repositório, rode `node validar-local.mjs P26-2A-557F-D130-1422-DA84`.
+
+## Testes
+
+```
+node --no-warnings tests/api.test.mjs                                 # API (Node 22+)
+node skills/teste-validacao/scripts/auditar.mjs https://p26-2a-557f-d130-1422-da84.pages.dev
+```
+
+Licença: MIT (arquivo `LICENSE`).
