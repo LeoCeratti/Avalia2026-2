@@ -6,7 +6,7 @@
 - [ ] Projeto Pages com o nome `p26-2a-557f-d130-1422-da84`, Root directory = `P26-2A-557F-D130-1422-DA84`, output = `public`
 - [ ] Binding `DB` ativo
 - [ ] Secrets: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `SESSION_SECRET`; novo deploy depois
-- [ ] Redirect no Discord: `https://p26-2a-557f-d130-1422-da84.pages.dev/api/auth/discord/callback`
+- [ ] Redirect no Discord: `https://avalia2026-2-cz9.pages.dev/api/auth/discord/callback`
 - [ ] `/api/status` mostra tudo `true`
 
 ## Testes
@@ -15,7 +15,7 @@
 - [ ] Sem login, `/api/lists` responde 401; não-membro abrindo uma lista recebe 404
 - [ ] Celular ok
 - [ ] `node validar-local.mjs P26-2A-557F-D130-1422-DA84` (na raiz do repo) sem pendências
-- [ ] `node skills/teste-validacao/scripts/auditar.mjs https://p26-2a-557f-d130-1422-da84.pages.dev` sem falhas
+- [ ] `node skills/teste-validacao/scripts/auditar.mjs https://avalia2026-2-cz9.pages.dev` sem falhas
 
 ## Agentes (25 pts)
 - [ ] Os 3 agentes realmente usados no harness

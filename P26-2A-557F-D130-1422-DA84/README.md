@@ -4,7 +4,7 @@
 - **Estudante:** Leonardo Ceratti dos Santos · RA 2026107850
 - **Turma:** 2A
 - **Chave Única:** `P26-2A-557F-D130-1422-DA84`
-- **URL_CLOUDFLARE:** `https://p26-2a-557f-d130-1422-da84.pages.dev`
+- **URL_CLOUDFLARE:** `https://avalia2026-2-cz9.pages.dev`
 
 ---
 
@@ -56,11 +56,11 @@ Tabelas: `discord_users` (usuários), `lists` (listas, com `code` de acesso),
 3. **Binding:** variável `DB` apontando para esse banco (já declarado no `wrangler.jsonc`;
    se o painel não mostrar o binding, ele vem do arquivo).
 4. **Discord:** em *Developer Portal → OAuth2 → Redirects* cadastre
-   `https://p26-2a-557f-d130-1422-da84.pages.dev/api/auth/discord/callback`.
+   `https://avalia2026-2-cz9.pages.dev/api/auth/discord/callback`.
 5. **Variáveis (como Secret):** `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET` e
    `SESSION_SECRET` (texto longo e aleatório, 40+ caracteres). Faça um novo deploy
    depois de criá-las.
-6. Confira `https://p26-2a-557f-d130-1422-da84.pages.dev/api/status`: deve mostrar
+6. Confira `https://avalia2026-2-cz9.pages.dev/api/status`: deve mostrar
    `d1Conectado`, `discordConfigurado` e `sessaoConfigurada` como `true`.
 7. Na raiz do repositório, rode `node validar-local.mjs P26-2A-557F-D130-1422-DA84`.
 
@@ -68,7 +68,7 @@ Tabelas: `discord_users` (usuários), `lists` (listas, com `code` de acesso),
 
 ```
 node --no-warnings tests/api.test.mjs                                 # API (Node 22+)
-node skills/teste-validacao/scripts/auditar.mjs https://p26-2a-557f-d130-1422-da84.pages.dev
+node skills/teste-validacao/scripts/auditar.mjs https://avalia2026-2-cz9.pages.dev
 ```
 
 Licença: MIT (arquivo `LICENSE`).
