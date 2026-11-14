@@ -46,7 +46,7 @@ Tabelas: `discord_users` (usuários), `lists` (listas, com `code` de acesso),
 ## Como publicar esta subpasta no Cloudflare Pages + D1 + Discord OAuth2
 
 1. **Pages:** em *Workers & Pages → Create → Pages → Connect to Git*, escolha o fork e
-   dê ao projeto o nome `p26-2a-557f-d130-1422-da84`. Configure:
+   o projeto ficou com o nome `avalia2026-2` (URL `avalia2026-2-cz9.pages.dev`). Configure:
    - **Root directory:** `P26-2A-557F-D130-1422-DA84`
    - **Build command:** vazio
    - **Build output directory:** `public`
