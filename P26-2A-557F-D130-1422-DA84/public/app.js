@@ -59,8 +59,8 @@ async function telaHome() {
   atual = null; clearInterval(timer);
   try {
     const listas = await api("/api/lists");
-    const nome = el("input", { placeholder: "Nome da nova lista", maxLength: 80 });
-    const codigo = el("input", { placeholder: "Código de acesso", maxLength: 16 });
+    const nome = el("input", { placeholder: "Nome da nova lista", "aria-label": "Nome da nova lista", maxLength: 80 });
+    const codigo = el("input", { placeholder: "Código de acesso", "aria-label": "Código de acesso", maxLength: 16 });
     app.replaceChildren(
       cabecalho(false),
       el("section", { class: "card" }, el("h2", {}, "Criar lista"),
@@ -71,7 +71,18 @@ async function telaHome() {
           el("button", { onclick: () => api("/api/lists/join", "POST", { codigo: codigo.value }).then((r) => abrir(r.id)).catch(falha) }, "Entrar"))),
       el("section", { class: "card" }, el("h2", {}, "Minhas listas"),
         listas.length
-          ? listas.map((l) => el("div", { class: "tarefa lista-item", onclick: () => abrir(l.id) },
+          ? listas.map((l) => el("div", {
+              class: "tarefa lista-item",
+              role: "button",
+              tabindex: 0,
+              onclick: () => abrir(l.id),
+              onkeydown: (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  abrir(l.id);
+                }
+              },
+            },
               el("span", {}, l.name), el("small", {}, `${l.feitas}/${l.total} concluídas`)))
           : el("p", { class: "vazio" }, "Você ainda não participa de nenhuma lista. Crie uma ou entre com um código.")));
   } catch (e) { falha(e); }
@@ -99,24 +110,24 @@ function desenhar({ lista, membros, tarefas }) {
   const linha = (t, sub) => {
     const resp = porId.get(t.assignee_id);
     const seletor = el("select", {
-      "aria-label": "Responsável",
+      "aria-label": `Responsável por ${t.title}`,
       onchange: (e) => agir(api(`/api/tasks/${t.id}`, "PATCH", { assignee_id: e.target.value || null })),
     },
       el("option", { value: "" }, "sem responsável"),
       membros.map((m) => el("option", { value: m.id, selected: m.id === t.assignee_id }, m.username)));
     return el("div", { class: `tarefa${t.done ? " feita" : ""}${sub ? " sub" : ""}` },
-      el("input", { type: "checkbox", checked: !!t.done, "aria-label": "Concluída",
+      el("input", { type: "checkbox", checked: !!t.done, "aria-label": `${t.done ? "Reabrir" : "Concluir"} ${t.title}`,
         onchange: (e) => agir(api(`/api/tasks/${t.id}`, "PATCH", { done: e.target.checked })) }),
       el("span", { class: "titulo" }, t.title),
       resp ? el("img", { class: "avatar", src: resp.avatar_url, alt: resp.username, title: resp.username }) : null,
       seletor,
-      el("button", { class: "perigo", "aria-label": "Excluir tarefa",
+      el("button", { class: "perigo", "aria-label": `Excluir tarefa: ${t.title}`,
         onclick: () => confirm("Excluir esta tarefa?") && agir(api(`/api/tasks/${t.id}`, "DELETE")) }, "✕"));
   };
 
-  const novaTarefa = el("input", { placeholder: "Nova tarefa", maxLength: 200 });
+  const novaTarefa = el("input", { placeholder: "Nova tarefa", "aria-label": "Nova tarefa", maxLength: 200 });
   const blocoSub = (pai) => {
-    const campo = el("input", { placeholder: "Nova subtarefa", maxLength: 200 });
+    const campo = el("input", { placeholder: "Nova subtarefa", "aria-label": "Nova subtarefa", maxLength: 200 });
     return el("div", { class: "row sub" }, campo,
       el("button", { class: "sec",
         onclick: () => agir(api(`/api/lists/${atual}/tasks`, "POST", { titulo: campo.value, parent_id: pai.id })) }, "Adicionar subtarefa"));
