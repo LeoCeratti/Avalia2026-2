@@ -92,7 +92,9 @@ async function abrir(id) {
   atual = id; clearInterval(timer);
   await recarregar();
   // Sincroniza com os colegas a cada 8 s, sem atrapalhar quem está digitando.
-  timer = setInterval(() => { if (document.activeElement?.tagName !== "INPUT") recarregar(); }, 8000);
+  timer = setInterval(() => {
+    if (!["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) recarregar();
+  }, 8000);
 }
 
 async function recarregar() {
