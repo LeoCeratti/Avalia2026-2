@@ -2,7 +2,7 @@ import { json, autenticar, ehMembro, idValido, textoValido } from "../../../lib/
 
 async function carregar(env, params, u) {
   const id = idValido(params.id);
-  const t = id && (await env.DB.prepare("SELECT id, list_id FROM tasks WHERE id = ?").bind(id).first());
+  const t = id && (await env.DB.prepare("SELECT id, list_id, created_by FROM tasks WHERE id = ?").bind(id).first());
   if (!t || !(await ehMembro(env, t.list_id, u.id))) return null;
   return t;
 }
@@ -17,7 +17,10 @@ export async function onRequestPatch({ request, env, params }) {
   if (!b || typeof b !== "object") return json({ erro: "Corpo inválido." }, 400);
   const sets = [], vals = [];
 
-  if ("done" in b) { sets.push("done = ?"); vals.push(b.done ? 1 : 0); }
+  if ("done" in b) {
+    if (typeof b.done !== "boolean") return json({ erro: "Estado de conclusão inválido." }, 400);
+    sets.push("done = ?"); vals.push(b.done ? 1 : 0);
+  }
   if ("title" in b) {
     const titulo = textoValido(b.title, 200);
     if (!titulo) return json({ erro: "Título inválido." }, 400);
@@ -40,6 +43,9 @@ export async function onRequestDelete({ request, env, params }) {
   if (erro) return erro;
   const t = await carregar(env, params, u);
   if (!t) return json({ erro: "Tarefa não encontrada." }, 404);
+  const lista = await env.DB.prepare("SELECT owner_id FROM lists WHERE id = ?").bind(t.list_id).first();
+  if (u.id !== t.created_by && u.id !== lista?.owner_id)
+    return json({ erro: "Só o autor da tarefa ou o dono da lista pode excluí-la." }, 403);
   await env.DB.prepare("DELETE FROM tasks WHERE id = ? OR parent_id = ?").bind(t.id, t.id).run();
   return json({ ok: true });
 }

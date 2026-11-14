@@ -51,6 +51,7 @@ esp("não-membro lê lista → 404", (await lista.onRequestGet({ request: await 
 
 const code = sqlite.prepare("SELECT code FROM lists WHERE id=?").get(id).code;
 esp("código errado", (await join.onRequestPost({ request: await req("POST", "/api/lists/join", "222", { codigo: "ZZZZZZZZ" }), env })).status, 404);
+esp("código fora do formato", (await join.onRequestPost({ request: await req("POST", "/api/lists/join", "222", { codigo: "abc" }), env })).status, 400);
 esp("entrar com código (minúsculo)", (await join.onRequestPost({ request: await req("POST", "/api/lists/join", "222", { codigo: code.toLowerCase() }), env })).status, 200);
 esp("entrar de novo (idempotente)", (await join.onRequestPost({ request: await req("POST", "/api/lists/join", "222", { codigo: code }), env })).status, 200);
 esp("membro lê lista", (await lista.onRequestGet({ request: await req("GET", `/api/lists/${id}`, "222"), env, params: { id } })).status, 200);
@@ -65,7 +66,10 @@ const s1 = (await r.json()).id;
 esp("sub de subtarefa recusada", (await tarefasLista.onRequestPost({ request: await req("POST", `/api/lists/${id}/tasks`, "111", { titulo: "x", parent_id: s1 }), env, params: { id } })).status, 400);
 esp("não-membro cria tarefa", (await tarefasLista.onRequestPost({ request: await req("POST", `/api/lists/${id}/tasks`, "333", { titulo: "x" }), env, params: { id } })).status, 404);
 
+esp("done não booleano", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "222", { done: "false" }), env, params: { id: String(t1) } })).status, 400);
+esp("done inválido não altera tarefa", sqlite.prepare("SELECT done FROM tasks WHERE id=?").get(t1).done, 0);
 esp("concluir tarefa", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "222", { done: true }), env, params: { id: String(t1) } })).status, 200);
+esp("membro edita título", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "222", { title: "Introdução revisada" }), env, params: { id: String(t1) } })).status, 200);
 esp("não-membro altera tarefa", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "333", { done: false }), env, params: { id: String(t1) } })).status, 404);
 esp("atribuir a não-membro", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "111", { assignee_id: "333" }), env, params: { id: String(t1) } })).status, 400);
 esp("limpar responsável", (await tarefa.onRequestPatch({ request: await req("PATCH", `/api/tasks/${t1}`, "111", { assignee_id: null }), env, params: { id: String(t1) } })).status, 200);
@@ -76,7 +80,8 @@ const dados = await (await lista.onRequestGet({ request: await req("GET", `/api/
 esp("membros na lista", dados.membros.length, 2);
 esp("done persistiu", dados.tarefas.find((t) => t.id === t1).done, 1);
 
-esp("excluir tarefa (com subtarefa)", (await tarefa.onRequestDelete({ request: await req("DELETE", `/api/tasks/${t1}`, "222"), env, params: { id: String(t1) } })).status, 200);
+esp("membro comum não exclui tarefa", (await tarefa.onRequestDelete({ request: await req("DELETE", `/api/tasks/${t1}`, "222"), env, params: { id: String(t1) } })).status, 403);
+esp("excluir tarefa (com subtarefa)", (await tarefa.onRequestDelete({ request: await req("DELETE", `/api/tasks/${t1}`, "111"), env, params: { id: String(t1) } })).status, 200);
 esp("subtarefa removida junto", sqlite.prepare("SELECT COUNT(*) c FROM tasks WHERE id=?").get(s1).c, 0);
 esp("não-dono exclui lista", (await lista.onRequestDelete({ request: await req("DELETE", `/api/lists/${id}`, "222"), env, params: { id } })).status, 403);
 esp("dono exclui lista", (await lista.onRequestDelete({ request: await req("DELETE", `/api/lists/${id}`, "111"), env, params: { id } })).status, 200);
